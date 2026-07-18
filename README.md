@@ -13,18 +13,21 @@
 > within a handful of steps.** `python -m agentbudget.eval`.
 
 An agentic loop, plan, call a tool, observe, repeat, has no natural stopping
-point. Give it a task it cannot quite finish and it will not crash. It will do
-something worse: it will look busy forever. It retries the same failing call.
-It bounces between two states. It cycles through three approaches without ever
-admitting none of them are working, and your step counter and your cost counter
-both sit comfortably under their limits the entire time, because a stall is not
-a runaway, it is a very well-behaved waste of money.
+point, kind of like a group chat that refuses to die. Give it a task it can't
+quite finish and it won't crash. It'll do something worse: it'll look busy
+forever. It retries the same failing call like insisting harder will change
+the API. It bounces between two states like it's stuck in a revolving door.
+It cycles through three approaches without ever admitting none of them are
+working, and your step counter and your cost counter both sit comfortably
+under their limits the entire time, because a stall isn't a runaway, it's a
+very well-behaved way to set money on fire.
 
 agentbudget is the guardrail that catches the well-behaved failure too. Hard
-limits (steps, dollars, wall-clock) stop the obvious runaway. Loop detection
-catches the sneaky one: it hashes every (action, observation) pair and flags it
-the moment the same transition repeats too many times in a short window,
-whether or not any hard ceiling was ever close to tripping.
+limits (steps, dollars, wall-clock) stop the obvious runaway, the agent that's
+clearly off the rails. Loop detection catches the sneaky one: it hashes every
+(action, observation) pair and flags it the moment the same transition
+repeats too many times in a short window, whether or not any hard ceiling was
+ever close to tripping.
 
 No model, no network, no dependencies. You call `record()` after every tool
 call and `check()` before the next one; it does the rest.
