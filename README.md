@@ -3,7 +3,7 @@
 **Stop your agent before it loops forever and burns your budget.**
 
 ![CI](https://github.com/ahmeddoghri/agentbudget/actions/workflows/ci.yml/badge.svg)
-![tests](https://img.shields.io/badge/tests-9%20passing-brightgreen)
+![tests](https://img.shields.io/badge/tests-26%20passing-brightgreen)
 ![python](https://img.shields.io/badge/python-3.9%2B-blue)
 ![deps](https://img.shields.io/badge/runtime%20deps-none-success)
 ![license](https://img.shields.io/badge/license-MIT-black)
@@ -11,6 +11,14 @@
 > **A step-count-only guardrail catches 0 of 3 stalled agent traces, because
 > none of them ever hit a hard ceiling. Loop detection catches all 3, usually
 > within a handful of steps.** `python -m agentbudget.eval`.
+>
+> **Update:** loop detection itself has a blind spot just as common as the
+> one it fixes. Exact-match hashing means a stall where the API error
+> includes a retry-after countdown, a request ID, or a timestamp, the kind
+> of thing real error responses do constantly, produces a different
+> observation string every call and is never detected. Six identical
+> rate-limit failures ran to completion, undetected. Fixed:
+> `python -m agentbudget.eval_v2`.
 
 An agentic loop, plan, call a tool, observe, repeat, has no natural stopping
 point, kind of like a group chat that refuses to die. Give it a task it can't
@@ -100,6 +108,54 @@ repeats itself in ways that are easy to catch exactly; you do not need
 semantic fuzziness to find "I called the same broken thing five times in a
 row."
 
+## A volatile field in the observation defeats it just as easily
+
+There's a second gap in the exact-match design, more common than the agent
+varying its own wording, and it comes from the environment, not the agent.
+Real API errors routinely embed a field that changes on every call even
+when the underlying situation is identical: a retry-after countdown, a
+request ID, a timestamp.
+
+```
+"error: rate limited, retry after 1247ms"
+"error: rate limited, retry after 983ms"
+"error: rate limited, retry after 1502ms"
+...
+```
+
+Six calls to the same broken endpoint, six different observation strings.
+`BudgetGuardrail` hashes them as-is: it runs all six steps and never once
+flags a loop, exactly the "well-behaved failure" this tool exists to
+catch, invisible to it because of one countdown nobody thought to
+normalize.
+
+```bash
+python -m agentbudget.eval_v2
+```
+```
+corpus / version            caught    recall   false pos
+adversarial / v1            0/3           0%           0
+adversarial / v2            3/3         100%           0
+
+holdout / v1                 0/2           0%           0
+holdout / v2                  2/2         100%           0
+```
+
+The fix can't be "strip every digit": some digits in an observation are
+the actual progress signal, "5 tests failed" -> "3 tests failed" -> "0
+tests failed" is real convergence, and blindly collapsing those would turn
+progress into a false loop alarm. `agentbudget/guardrail_v2.py`'s
+`canonicalize()` only neutralizes tokens that structurally look volatile:
+durations ("1247ms", "3.2s"), ISO-8601 timestamps, UUIDs, and long
+hex-looking IDs. A bare count like "3 tests failed" is left untouched, and
+a genuinely converging trace with the same action every step never
+false-positives in either version, verified directly. 0% to 100% recall on
+three adversarial volatile-field patterns and a two-stall holdout
+evaluated exactly once, with zero regression on the original five-trace
+benchmark. `guardrail.py` is untouched, so `BudgetGuardrail`'s exact-match
+behavior and the published numbers above are unaffected; `BudgetGuardrailV2`
+is opt-in.
+
 ## What it will not catch
 
 If the agent varies its wording each time (different phrasing, same underlying
@@ -112,7 +168,7 @@ is the one place to change.
 ## Tests
 
 ```bash
-pip install pytest && pytest -q      # 9 passing
+pip install pytest && pytest -q      # 26 passing
 ```
 
 ## License
