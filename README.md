@@ -2,7 +2,6 @@
 
 **Stop your agent before it loops forever and burns your budget.**
 
-![CI](https://github.com/ahmeddoghri/agentbudget/actions/workflows/ci.yml/badge.svg)
 ![tests](https://img.shields.io/badge/tests-26%20passing-brightgreen)
 ![python](https://img.shields.io/badge/python-3.9%2B-blue)
 ![deps](https://img.shields.io/badge/runtime%20deps-none-success)
