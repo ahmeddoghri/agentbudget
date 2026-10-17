@@ -2,10 +2,13 @@
 
 **Stop your agent before it loops forever and burns your budget.**
 
-![tests](https://img.shields.io/badge/tests-26%20passing-brightgreen)
+[![tests](https://github.com/ahmeddoghri/agentbudget/actions/workflows/tests.yml/badge.svg)](https://github.com/ahmeddoghri/agentbudget/actions/workflows/tests.yml)
 ![python](https://img.shields.io/badge/python-3.9%2B-blue)
 ![deps](https://img.shields.io/badge/runtime%20deps-none-success)
 ![license](https://img.shields.io/badge/license-MIT-black)
+[![case study](https://img.shields.io/badge/case%20study-adoghri.com-e0703e)](https://adoghri.com/project-21.html)
+
+![agentbudget](docs/cover.jpg)
 
 > **A step-count-only guardrail catches 0 of 3 stalled agent traces, because
 > none of them ever hit a hard ceiling. Loop detection catches all 3, usually
