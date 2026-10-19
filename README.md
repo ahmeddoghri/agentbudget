@@ -1,4 +1,4 @@
-# 🛑 agentbudget
+# agentbudget
 
 **Stop your agent before it loops forever and burns your budget.**
 
